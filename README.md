@@ -91,22 +91,6 @@ tests/
    docker-compose down
    ```
 
-## Running Tests
-
-### Run all tests
-```bash
-dotnet test
-```
-
-### Run unit tests only
-```bash
-dotnet test tests/ToDoList.UnitTests/ToDoList.UnitTests/ToDoList.UnitTests.csproj
-```
-
-### Run integration tests only
-```bash
-dotnet test tests/ToDoList.IntegrationTests/ToDoList.IntegrationTests/ToDoList.IntegrationTests.csproj
-```
 
 ## Configuration
 
@@ -115,7 +99,7 @@ Logs are written to:
 - Console output
 - `logs/todolist-{Date}.log` files
 
-## 🔧 Development
+## Development
 
 ### Build the solution
 ```bash
