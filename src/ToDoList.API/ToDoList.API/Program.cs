@@ -3,7 +3,6 @@ using ToDoList.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Serilog
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
@@ -11,10 +10,8 @@ builder.Host.UseSerilog((context, configuration) =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Configure Swagger
 builder.Services.AddSwaggerGen();
 
-// Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -33,7 +30,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Add global exception handling middleware
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.UseHttpsRedirection();
@@ -45,7 +41,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Add Serilog request logging
 app.UseSerilogRequestLogging();
 
 try
