@@ -1,0 +1,22 @@
+using FluentValidation;
+using ToDoList.Application.DTOs;
+
+namespace ToDoList.Application.Validators;
+
+public class UpdateCategoryDtoValidator : AbstractValidator<UpdateCategoryDto>
+{
+    public UpdateCategoryDtoValidator()
+    {
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Category name is required")
+            .MaximumLength(100).WithMessage("Category name must not exceed 100 characters");
+
+        RuleFor(x => x.Description)
+            .MaximumLength(500).WithMessage("Description must not exceed 500 characters")
+            .When(x => !string.IsNullOrEmpty(x.Description));
+
+        RuleFor(x => x.Color)
+            .NotEmpty().WithMessage("Color is required")
+            .Matches("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$").WithMessage("Color must be a valid hex color code");
+    }
+}
