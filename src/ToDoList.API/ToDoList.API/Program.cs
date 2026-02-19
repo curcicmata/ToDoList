@@ -1,10 +1,13 @@
 using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using ToDoList.API.Filters;
 using ToDoList.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +21,7 @@ builder.Services.AddDbContext<ToDoList.Infrastructure.Data.ApplicationDbContext>
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<ToDoList.Application.Validators.RegisterDtoValidator>();
 
+#region JWT
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
 var key = Encoding.UTF8.GetBytes(jwtKey);
 
@@ -43,6 +47,8 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+#endregion
+
 builder.Services.AddAuthorization();
 
 // Register Repositories
@@ -56,9 +62,24 @@ builder.Services.AddScoped<ToDoList.Application.Interfaces.IJwtTokenService, ToD
 builder.Services.AddScoped<ToDoList.Application.Interfaces.ICategoryService, ToDoList.Application.Services.CategoryService>();
 builder.Services.AddScoped<ToDoList.Application.Interfaces.ITodoTaskService, ToDoList.Application.Services.TodoTaskService>();
 
+// Register Background Job Service
+builder.Services.AddScoped<ToDoList.Infrastructure.BackgroundJobs.IBackgroundJobService, ToDoList.Infrastructure.BackgroundJobs.BackgroundJobService>();
+
+#region Hangfire
+builder.Services.AddHangfire(configuration => configuration
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(builder.Configuration.GetConnectionString("DefaultConnection"))));
+
+builder.Services.AddHangfireServer();
+
+#endregion
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
+#region Swagger
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
@@ -87,6 +108,8 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+#endregion
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -114,6 +137,13 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
+
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = [new HangfireAuthorizationFilter(app.Environment.IsDevelopment())],
+    DashboardTitle = "ToDoList Background Jobs"
+});
+
 app.MapControllers();
 
 app.UseSerilogRequestLogging();
@@ -126,6 +156,21 @@ if (app.Environment.IsDevelopment())
     await seeder.SeedAsync();
     Log.Information("Database seeded successfully");
 }
+
+#region Hangfire background jobs
+RecurringJob.AddOrUpdate<ToDoList.Infrastructure.BackgroundJobs.IBackgroundJobService>(
+    "send-overdue-reminders",
+    service => service.SendOverdueTaskReminders(),
+    Cron.Daily(9));
+
+RecurringJob.AddOrUpdate<ToDoList.Infrastructure.BackgroundJobs.IBackgroundJobService>(
+    "cleanup-deleted-records",
+    service => service.CleanupSoftDeletedRecords(),
+    Cron.Weekly(DayOfWeek.Sunday, 2));
+
+Log.Information("Hangfire recurring jobs configured");
+
+#endregion
 
 try
 {
