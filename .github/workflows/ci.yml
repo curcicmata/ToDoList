@@ -55,6 +55,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
 
     steps:
     - uses: actions/checkout@v4
@@ -62,11 +65,12 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Log in to Docker Hub
+    - name: Log in to GitHub Container Registry
       uses: docker/login-action@v3
       with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
@@ -75,7 +79,7 @@ jobs:
         file: ./Dockerfile
         push: true
         tags: |
-          ${{ secrets.DOCKER_USERNAME }}/todolist-api:latest
-          ${{ secrets.DOCKER_USERNAME }}/todolist-api:${{ github.sha }}
-        cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/todolist-api:buildcache
-        cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/todolist-api:buildcache,mode=max
+          ghcr.io/${{ github.repository_owner }}/todolist-api:latest
+          ghcr.io/${{ github.repository_owner }}/todolist-api:${{ github.sha }}
+        cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/todolist-api:buildcache
+        cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/todolist-api:buildcache,mode=max
