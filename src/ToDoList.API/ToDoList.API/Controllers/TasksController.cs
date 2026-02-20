@@ -1,9 +1,8 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using ToDoList.Application.DTOs;
 using ToDoList.Application.Interfaces;
-using ToDoList.Domain.Entities;
 
 namespace ToDoList.API.Controllers;
 
@@ -21,12 +20,13 @@ public class TasksController(ITodoTaskService taskService) : ControllerBase
     }
 
     /// <summary>
-    /// Get all tasks from a user
+    /// Returns all tasks without pagination for the authenticated user
     /// </summary>
-    /// <param name="status"></param>
-    /// <param name="categoryId"></param>
-    /// <returns></returns>
+    /// <param name="status">Optional filter by task status (Pending=0, InProgress=1, Completed=2, Cancelled=3)</param>
+    /// <param name="categoryId">Optional filter by category ID</param>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<TodoTaskDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<IEnumerable<TodoTaskDto>>> GetAll(
         [FromQuery] ToDoList.Domain.Entities.TaskStatus? status = null,
         [FromQuery] Guid? categoryId = null)
@@ -37,16 +37,17 @@ public class TasksController(ITodoTaskService taskService) : ControllerBase
     }
 
     /// <summary>
-    /// Get tasks from a user that have pagination
+    /// Get paginated tasks for the authenticated user with filtering and sorting
     /// </summary>
-    /// <param name="pageNumber"></param>
-    /// <param name="pageSize"></param>
-    /// <param name="status"></param>
-    /// <param name="categoryId"></param>
-    /// <param name="sortBy"></param>
-    /// <param name="sortDescending"></param>
-    /// <returns></returns>
+    /// <param name="pageNumber">Page number (default: 1)</param>
+    /// <param name="pageSize">Number of items per page (default: 10, max: 100)</param>
+    /// <param name="status">Optional filter by task status (Pending=0, InProgress=1, Completed=2, Cancelled=3)</param>
+    /// <param name="categoryId">Optional filter by category ID</param>
+    /// <param name="sortBy">Optional sort field (Title, DueDate, Priority, CreatedAt)</param>
+    /// <param name="sortDescending">Sort in descending order (default: false)</param>
     [HttpGet("paged")]
+    [ProducesResponseType(typeof(PagedResultDto<TodoTaskDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<PagedResultDto<TodoTaskDto>>> GetPaged(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
@@ -64,8 +65,10 @@ public class TasksController(ITodoTaskService taskService) : ControllerBase
     /// Get single user task
     /// </summary>
     /// <param name="id"></param>
-    /// <returns></returns>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(PagedResultDto<TodoTaskDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TodoTaskDto>> GetById(Guid id)
     {
         var userId = GetUserId();
@@ -80,8 +83,9 @@ public class TasksController(ITodoTaskService taskService) : ControllerBase
     /// <summary>
     /// Count all overdue taks from logged user
     /// </summary>
-    /// <returns></returns>
     [HttpGet("overdue/count")]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<int>> GetOverdueCount()
     {
         var userId = GetUserId();
@@ -90,11 +94,14 @@ public class TasksController(ITodoTaskService taskService) : ControllerBase
     }
 
     /// <summary>
-    /// Create a task
+    /// Create a new task
     /// </summary>
-    /// <param name="dto"></param>
-    /// <returns></returns>
+    /// <param name="dto">Task creation details including title, description, priority, due date, and category</param>
     [HttpPost]
+    [ProducesResponseType(typeof(TodoTaskDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TodoTaskDto>> Create([FromBody] CreateTodoTaskDto dto)
     {
         try
@@ -110,12 +117,15 @@ public class TasksController(ITodoTaskService taskService) : ControllerBase
     }
 
     /// <summary>
-    /// Update a task
+    /// Update an existing task
     /// </summary>
-    /// <param name="id"></param>
-    /// <param name="dto"></param>
-    /// <returns></returns>
+    /// <param name="id">Task ID to update</param>
+    /// <param name="dto">Updated task details including title, description, status, priority, due date, and category</param>
     [HttpPut("{id}")]
+    [ProducesResponseType(typeof(TodoTaskDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TodoTaskDto>> Update(Guid id, [FromBody] UpdateTodoTaskDto dto)
     {
         try
@@ -134,8 +144,9 @@ public class TasksController(ITodoTaskService taskService) : ControllerBase
     /// Delete a task
     /// </summary>
     /// <param name="id"></param>
-    /// <returns></returns>
     [HttpDelete("{id}")]
+    [ProducesResponseType(typeof(ActionResult), StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> Delete(Guid id)
     {
         var userId = GetUserId();

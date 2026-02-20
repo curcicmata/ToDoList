@@ -12,8 +12,9 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
     private readonly ILogger<AuthController> _logger = logger;
 
     /// <summary>
-    /// Register a new user
+    /// Register a new user account
     /// </summary>
+    /// <param name="registerDto">User registration details including email, password, and password confirmation</param>
     [HttpPost("register")]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -29,8 +30,9 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
     }
 
     /// <summary>
-    /// Login with email and password
+    /// Authenticate user and receive JWT token
     /// </summary>
+    /// <param name="loginDto">User login credentials (email and password)</param>
     [HttpPost("login")]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -46,7 +48,7 @@ public class AuthController(IAuthService authService, ILogger<AuthController> lo
     }
 
     /// <summary>
-    /// Get current user profile
+    /// Get authenticated user's profile information
     /// </summary>
     [HttpGet("profile")]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]

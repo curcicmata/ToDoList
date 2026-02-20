@@ -22,8 +22,10 @@ public class CategoriesController(ICategoryService categoryService) : Controller
     /// <summary>
     /// Get all categories
     /// </summary>
-    /// <returns></returns>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<CategoryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAll()
     {
         var userId = GetUserId();
@@ -35,8 +37,11 @@ public class CategoriesController(ICategoryService categoryService) : Controller
     /// Get category by Id
     /// </summary>
     /// <param name="id"></param>
-    /// <returns></returns>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(IEnumerable<CategoryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CategoryDto>> GetById(Guid id)
     {
         var userId = GetUserId();
@@ -52,8 +57,10 @@ public class CategoriesController(ICategoryService categoryService) : Controller
     /// Create a category
     /// </summary>
     /// <param name="dto"></param>
-    /// <returns></returns>
     [HttpPost]
+    [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CategoryDto>> Create([FromBody] CreateCategoryDto dto)
     {
         var userId = GetUserId();
@@ -66,8 +73,11 @@ public class CategoriesController(ICategoryService categoryService) : Controller
     /// </summary>
     /// <param name="id"></param>
     /// <param name="dto"></param>
-    /// <returns></returns>
     [HttpPut("{id}")]
+    [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CategoryDto>> Update(Guid id, [FromBody] UpdateCategoryDto dto)
     {
         try
@@ -86,8 +96,10 @@ public class CategoriesController(ICategoryService categoryService) : Controller
     /// Delete a category
     /// </summary>
     /// <param name="id"></param>
-    /// <returns></returns>
     [HttpDelete("{id}")]
+    [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> Delete(Guid id)
     {
         var userId = GetUserId();

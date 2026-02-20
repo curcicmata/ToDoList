@@ -76,12 +76,27 @@ builder.Services.AddHangfireServer();
 
 #endregion
 
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!);
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 #region Swagger
 builder.Services.AddSwaggerGen(options =>
 {
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Version = "v1",
+        Title = "ToDoList API",
+        Description = "A comprehensive RESTful API for managing todo lists with authentication and background jobs",
+        Contact = new Microsoft.OpenApi.Models.OpenApiContact
+        {
+            Name = "ToDoList Support",
+            Url = new Uri("https://github.com/curcicmata/ToDoList")
+        }
+    });
+
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -106,6 +121,9 @@ builder.Services.AddSwaggerGen(options =>
             Array.Empty<string>()
         }
     });
+
+    var xmlFilename = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
 
 #endregion
@@ -145,6 +163,7 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 });
 
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 app.UseSerilogRequestLogging();
 
