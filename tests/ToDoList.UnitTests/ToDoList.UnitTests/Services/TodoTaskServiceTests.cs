@@ -100,7 +100,7 @@ public class TodoTaskServiceTests
         };
 
         _mockTaskRepository
-            .Setup(r => r.GetAllByUserIdAsync(_testUserId, null, null))
+            .Setup(r => r.GetAllByUserIdAsync(_testUserId, null, null, null, null, null, false))
             .ReturnsAsync(tasks);
 
         // Act
@@ -130,7 +130,7 @@ public class TodoTaskServiceTests
         };
 
         _mockTaskRepository
-            .Setup(r => r.GetAllByUserIdAsync(_testUserId, ToDoList.Domain.Entities.TaskStatus.Completed, null))
+            .Setup(r => r.GetAllByUserIdAsync(_testUserId, ToDoList.Domain.Entities.TaskStatus.Completed, null, null, null, null, false))
             .ReturnsAsync(tasks);
 
         // Act
@@ -159,7 +159,7 @@ public class TodoTaskServiceTests
         };
 
         _mockTaskRepository
-            .Setup(r => r.GetPagedAsync(_testUserId, 1, 10, null, null, null, false))
+            .Setup(r => r.GetPagedAsync(_testUserId, 1, 10, null, null, null, false, null, null, null, false))
             .ReturnsAsync((tasks, 25));
 
         // Act

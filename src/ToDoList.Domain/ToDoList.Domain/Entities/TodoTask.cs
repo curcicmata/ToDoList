@@ -17,4 +17,8 @@ public class TodoTask
     public DateTime? UpdatedAt { get; set; }
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
+    public bool IsArchived { get; set; }
+    public DateTime? ArchivedAt { get; set; }
+    public DateTime? ReminderTime { get; set; }
+    public bool ReminderSent { get; set; }
 }

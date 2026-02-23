@@ -24,15 +24,23 @@ public class TasksController(ITodoTaskService taskService) : ControllerBase
     /// </summary>
     /// <param name="status">Optional filter by task status (Pending=0, InProgress=1, Completed=2, Cancelled=3)</param>
     /// <param name="categoryId">Optional filter by category ID</param>
+    /// <param name="search">Optional search term to filter by title (case-insensitive)</param>
+    /// <param name="dueDateFrom">Optional lower bound for due date filter</param>
+    /// <param name="dueDateTo">Optional upper bound for due date filter</param>
+    /// <param name="includeArchived">Include archived and completed tasks (default: false)</param>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<TodoTaskDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<IEnumerable<TodoTaskDto>>> GetAll(
         [FromQuery] ToDoList.Domain.Entities.TaskStatus? status = null,
-        [FromQuery] Guid? categoryId = null)
+        [FromQuery] Guid? categoryId = null,
+        [FromQuery] string? search = null,
+        [FromQuery] DateTime? dueDateFrom = null,
+        [FromQuery] DateTime? dueDateTo = null,
+        [FromQuery] bool includeArchived = false)
     {
         var userId = GetUserId();
-        var tasks = await _taskService.GetAllByUserIdAsync(userId, status, categoryId);
+        var tasks = await _taskService.GetAllByUserIdAsync(userId, status, categoryId, search, dueDateFrom, dueDateTo, includeArchived);
         return Ok(tasks);
     }
 
@@ -45,6 +53,10 @@ public class TasksController(ITodoTaskService taskService) : ControllerBase
     /// <param name="categoryId">Optional filter by category ID</param>
     /// <param name="sortBy">Optional sort field (Title, DueDate, Priority, CreatedAt)</param>
     /// <param name="sortDescending">Sort in descending order (default: false)</param>
+    /// <param name="search">Optional search term to filter by title (case-insensitive)</param>
+    /// <param name="dueDateFrom">Optional lower bound for due date filter</param>
+    /// <param name="dueDateTo">Optional upper bound for due date filter</param>
+    /// <param name="includeArchived">Include archived and completed tasks (default: false)</param>
     [HttpGet("paged")]
     [ProducesResponseType(typeof(PagedResultDto<TodoTaskDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -54,10 +66,14 @@ public class TasksController(ITodoTaskService taskService) : ControllerBase
         [FromQuery] ToDoList.Domain.Entities.TaskStatus? status = null,
         [FromQuery] Guid? categoryId = null,
         [FromQuery] string? sortBy = null,
-        [FromQuery] bool sortDescending = false)
+        [FromQuery] bool sortDescending = false,
+        [FromQuery] string? search = null,
+        [FromQuery] DateTime? dueDateFrom = null,
+        [FromQuery] DateTime? dueDateTo = null,
+        [FromQuery] bool includeArchived = false)
     {
         var userId = GetUserId();
-        var result = await _taskService.GetPagedAsync(userId, pageNumber, pageSize, status, categoryId, sortBy, sortDescending);
+        var result = await _taskService.GetPagedAsync(userId, pageNumber, pageSize, status, categoryId, sortBy, sortDescending, search, dueDateFrom, dueDateTo, includeArchived);
         return Ok(result);
     }
 
@@ -81,6 +97,19 @@ public class TasksController(ITodoTaskService taskService) : ControllerBase
     }
 
     /// <summary>
+    /// Get all archived and completed tasks for the authenticated user
+    /// </summary>
+    [HttpGet("archived")]
+    [ProducesResponseType(typeof(IEnumerable<TodoTaskDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<IEnumerable<TodoTaskDto>>> GetArchived()
+    {
+        var userId = GetUserId();
+        var tasks = await _taskService.GetArchivedAsync(userId);
+        return Ok(tasks);
+    }
+
+    /// <summary>
     /// Count all overdue taks from logged user
     /// </summary>
     [HttpGet("overdue/count")]
@@ -96,7 +125,7 @@ public class TasksController(ITodoTaskService taskService) : ControllerBase
     /// <summary>
     /// Create a new task
     /// </summary>
-    /// <param name="dto">Task creation details including title, description, priority, due date, and category</param>
+    /// <param name="dto">Task creation details including title, description, priority, due date, category, and optional reminder time</param>
     [HttpPost]
     [ProducesResponseType(typeof(TodoTaskDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -117,10 +146,32 @@ public class TasksController(ITodoTaskService taskService) : ControllerBase
     }
 
     /// <summary>
+    /// Archive a task
+    /// </summary>
+    /// <param name="id">Task ID to archive</param>
+    [HttpPost("{id}/archive")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> Archive(Guid id)
+    {
+        try
+        {
+            var userId = GetUserId();
+            await _taskService.ArchiveAsync(id, userId);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Update an existing task
     /// </summary>
     /// <param name="id">Task ID to update</param>
-    /// <param name="dto">Updated task details including title, description, status, priority, due date, and category</param>
+    /// <param name="dto">Updated task details including title, description, status, priority, due date, category, and optional reminder time</param>
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(TodoTaskDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

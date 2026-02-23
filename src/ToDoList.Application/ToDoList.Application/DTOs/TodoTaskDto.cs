@@ -15,6 +15,9 @@ public class TodoTaskDto
     public string? CategoryName { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+    public bool IsArchived { get; set; }
+    public DateTime? ArchivedAt { get; set; }
+    public DateTime? ReminderTime { get; set; }
 }
 
 public class CreateTodoTaskDto
@@ -24,6 +27,7 @@ public class CreateTodoTaskDto
     public TaskPriority Priority { get; set; } = TaskPriority.Medium;
     public DateTime? DueDate { get; set; }
     public Guid? CategoryId { get; set; }
+    public DateTime? ReminderTime { get; set; }
 }
 
 public class UpdateTodoTaskDto
@@ -34,6 +38,7 @@ public class UpdateTodoTaskDto
     public TaskPriority Priority { get; set; }
     public DateTime? DueDate { get; set; }
     public Guid? CategoryId { get; set; }
+    public DateTime? ReminderTime { get; set; }
 }
 
 public class PagedResultDto<T>

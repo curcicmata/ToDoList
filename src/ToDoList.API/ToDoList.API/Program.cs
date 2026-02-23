@@ -65,6 +65,9 @@ builder.Services.AddScoped<ToDoList.Application.Interfaces.ITodoTaskService, ToD
 // Register Background Job Service
 builder.Services.AddScoped<ToDoList.Infrastructure.BackgroundJobs.IBackgroundJobService, ToDoList.Infrastructure.BackgroundJobs.BackgroundJobService>();
 
+// Register Email Service
+builder.Services.AddScoped<ToDoList.Application.Interfaces.IEmailService, ToDoList.Infrastructure.Services.EmailService>();
+
 #region Hangfire
 builder.Services.AddHangfire(configuration => configuration
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
@@ -167,27 +170,46 @@ app.MapHealthChecks("/health");
 
 app.UseSerilogRequestLogging();
 
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<ToDoList.Infrastructure.Data.ApplicationDbContext>();
-    var seeder = new ToDoList.Infrastructure.Data.DatabaseSeeder(context);
-    await seeder.SeedAsync();
-    Log.Information("Database seeded successfully");
+    await context.Database.MigrateAsync();
+    Log.Information("Database migrations applied");
+
+    if (app.Environment.IsDevelopment())
+    {
+        var seeder = new ToDoList.Infrastructure.Data.DatabaseSeeder(context);
+        await seeder.SeedAsync();
+        Log.Information("Database seeded successfully");
+    }
 }
 
 #region Hangfire background jobs
 if (!app.Environment.IsEnvironment("Testing"))
 {
+    // runs daily at 9AM
     RecurringJob.AddOrUpdate<ToDoList.Infrastructure.BackgroundJobs.IBackgroundJobService>(
         "send-overdue-reminders",
         service => service.SendOverdueTaskReminders(),
         Cron.Daily(9));
 
+    // runs every Sunday at 2AM
     RecurringJob.AddOrUpdate<ToDoList.Infrastructure.BackgroundJobs.IBackgroundJobService>(
         "cleanup-deleted-records",
         service => service.CleanupSoftDeletedRecords(),
         Cron.Weekly(DayOfWeek.Sunday, 2));
+
+    // runs every 15mins
+    RecurringJob.AddOrUpdate<ToDoList.Infrastructure.BackgroundJobs.IBackgroundJobService>(
+        "send-task-reminders",
+        service => service.SendTaskReminders(),
+        "*/15 * * * *");
+
+    // runs daily at 3AM
+    RecurringJob.AddOrUpdate<ToDoList.Infrastructure.BackgroundJobs.IBackgroundJobService>(
+        "archive-overdue-tasks",
+        service => service.ArchiveOverdueTasks(),
+        Cron.Daily(3));
 
     Log.Information("Hangfire recurring jobs configured");
 }

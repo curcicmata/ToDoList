@@ -13,15 +13,15 @@ public class TodoTaskService(ITodoTaskRepository taskRepository, ICategoryReposi
         return task == null ? null : MapToDto(task);
     }
 
-    public async Task<IEnumerable<TodoTaskDto>> GetAllByUserIdAsync(Guid userId, ToDoList.Domain.Entities.TaskStatus? status = null, Guid? categoryId = null)
+    public async Task<IEnumerable<TodoTaskDto>> GetAllByUserIdAsync(Guid userId, ToDoList.Domain.Entities.TaskStatus? status = null, Guid? categoryId = null, string? search = null, DateTime? dueDateFrom = null, DateTime? dueDateTo = null, bool includeArchived = false)
     {
-        var tasks = await taskRepository.GetAllByUserIdAsync(userId, status, categoryId);
+        var tasks = await taskRepository.GetAllByUserIdAsync(userId, status, categoryId, search, dueDateFrom, dueDateTo, includeArchived);
         return tasks.Select(MapToDto);
     }
 
-    public async Task<PagedResultDto<TodoTaskDto>> GetPagedAsync(Guid userId, int pageNumber, int pageSize, ToDoList.Domain.Entities.TaskStatus? status = null, Guid? categoryId = null, string? sortBy = null, bool sortDescending = false)
+    public async Task<PagedResultDto<TodoTaskDto>> GetPagedAsync(Guid userId, int pageNumber, int pageSize, ToDoList.Domain.Entities.TaskStatus? status = null, Guid? categoryId = null, string? sortBy = null, bool sortDescending = false, string? search = null, DateTime? dueDateFrom = null, DateTime? dueDateTo = null, bool includeArchived = false)
     {
-        var (tasks, totalCount) = await taskRepository.GetPagedAsync(userId, pageNumber, pageSize, status, categoryId, sortBy, sortDescending);
+        var (tasks, totalCount) = await taskRepository.GetPagedAsync(userId, pageNumber, pageSize, status, categoryId, sortBy, sortDescending, search, dueDateFrom, dueDateTo, includeArchived);
 
         return new PagedResultDto<TodoTaskDto>
         {
@@ -52,7 +52,8 @@ public class TodoTaskService(ITodoTaskRepository taskRepository, ICategoryReposi
             CategoryId = dto.CategoryId,
             UserId = userId,
             Status = ToDoList.Domain.Entities.TaskStatus.Pending,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            ReminderTime = dto.ReminderTime
         };
 
         var created = await taskRepository.CreateAsync(task);
@@ -84,6 +85,13 @@ public class TodoTaskService(ITodoTaskRepository taskRepository, ICategoryReposi
         task.CategoryId = dto.CategoryId;
         task.UpdatedAt = DateTime.UtcNow;
 
+        // Reset ReminderSent if ReminderTime changed
+        if (task.ReminderTime != dto.ReminderTime)
+        {
+            task.ReminderSent = false;
+        }
+        task.ReminderTime = dto.ReminderTime;
+
         // Set completion time if status changed to Completed
         if (previousStatus != ToDoList.Domain.Entities.TaskStatus.Completed && dto.Status == ToDoList.Domain.Entities.TaskStatus.Completed)
         {
@@ -108,6 +116,17 @@ public class TodoTaskService(ITodoTaskRepository taskRepository, ICategoryReposi
         return await taskRepository.GetOverdueCountAsync(userId);
     }
 
+    public async Task ArchiveAsync(Guid id, Guid userId)
+    {
+        await taskRepository.ArchiveAsync(id, userId);
+    }
+
+    public async Task<IEnumerable<TodoTaskDto>> GetArchivedAsync(Guid userId)
+    {
+        var tasks = await taskRepository.GetArchivedAsync(userId);
+        return tasks.Select(MapToDto);
+    }
+
     private static TodoTaskDto MapToDto(TodoTask task)
     {
         return new TodoTaskDto
@@ -122,7 +141,10 @@ public class TodoTaskService(ITodoTaskRepository taskRepository, ICategoryReposi
             CategoryId = task.CategoryId,
             CategoryName = task.Category?.Name,
             CreatedAt = task.CreatedAt,
-            UpdatedAt = task.UpdatedAt
+            UpdatedAt = task.UpdatedAt,
+            IsArchived = task.IsArchived,
+            ArchivedAt = task.ArchivedAt,
+            ReminderTime = task.ReminderTime
         };
     }
 }
