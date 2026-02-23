@@ -177,18 +177,20 @@ if (app.Environment.IsDevelopment())
 }
 
 #region Hangfire background jobs
-RecurringJob.AddOrUpdate<ToDoList.Infrastructure.BackgroundJobs.IBackgroundJobService>(
-    "send-overdue-reminders",
-    service => service.SendOverdueTaskReminders(),
-    Cron.Daily(9));
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    RecurringJob.AddOrUpdate<ToDoList.Infrastructure.BackgroundJobs.IBackgroundJobService>(
+        "send-overdue-reminders",
+        service => service.SendOverdueTaskReminders(),
+        Cron.Daily(9));
 
-RecurringJob.AddOrUpdate<ToDoList.Infrastructure.BackgroundJobs.IBackgroundJobService>(
-    "cleanup-deleted-records",
-    service => service.CleanupSoftDeletedRecords(),
-    Cron.Weekly(DayOfWeek.Sunday, 2));
+    RecurringJob.AddOrUpdate<ToDoList.Infrastructure.BackgroundJobs.IBackgroundJobService>(
+        "cleanup-deleted-records",
+        service => service.CleanupSoftDeletedRecords(),
+        Cron.Weekly(DayOfWeek.Sunday, 2));
 
-Log.Information("Hangfire recurring jobs configured");
-
+    Log.Information("Hangfire recurring jobs configured");
+}
 #endregion
 
 try
@@ -204,3 +206,5 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+public partial class Program { }
