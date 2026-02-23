@@ -1,6 +1,6 @@
 # ToDoList API
 
-A modern, scalable To-Do application built with ASP.NET Core 8, following Clean Architecture principles. This global application helps users organize and manage tasks efficiently with features like categorization, deadlines, reminders, and automatic archiving.
+A modern, scalable To-Do application built with ASP.NET Core 9, following Clean Architecture principles. This global application helps users organize and manage tasks efficiently with features like categorization, deadlines, reminders, and automatic archiving.
 
 ## Architecture
 
