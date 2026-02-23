@@ -33,6 +33,9 @@ tests/
 └── ToDoList.IntegrationTests/ # Integration tests for API endpoints
 ```
 
+## API guide
+API guide can be found here - [API guide](https://github.com/curcicmata/ToDoList/blob/main/API.md)
+
 ## Prerequisites
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
