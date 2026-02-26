@@ -1,14 +1,5 @@
 # Swagger Documentation Guide
 
-## What's Been Configured
-
-Your Swagger UI now includes comprehensive documentation with:
-- **Summaries** for each endpoint
-- **Parameter descriptions** with data types and examples
-- **Response codes** with explanations
-- **Request/Response examples** in JSON format
-- **Remarks** with usage notes and tips
-- **API metadata** (version, title, description, contact)
 
 ## How to View Documentation
 
@@ -278,20 +269,6 @@ To add comments to endpoints without them:
 3. Add `[ProducesResponseType]` attributes
 4. Rebuild the project
 
-## Additional Resources
 
-- [Swagger/OpenAPI Specification](https://swagger.io/specification/)
-- [ASP.NET Core XML Comments](https://learn.microsoft.com/aspnet/core/tutorials/getting-started-with-swashbuckle)
-- [Swashbuckle Documentation](https://github.com/domaindrivendev/Swashbuckle.AspNetCore)
-
-## Summary
-
-Your Swagger UI now provides:
-- ✓ Comprehensive endpoint documentation
-- ✓ Request/Response examples
-- ✓ Parameter descriptions
-- ✓ Status code explanations
-- ✓ Interactive testing interface
-- ✓ API metadata and versioning
 
 Users of your API can now understand and test all endpoints directly from the Swagger UI without referring to external documentation!

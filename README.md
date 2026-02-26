@@ -1,6 +1,6 @@
 # ToDoList API
 
-A modern, scalable To-Do application built with ASP.NET Core 8, following Clean Architecture principles. This global application helps users organize and manage tasks efficiently with features like categorization, deadlines, reminders, and automatic archiving.
+A modern, scalable To-Do application built with ASP.NET Core 9, following Clean Architecture principles. This global application helps users organize and manage tasks efficiently with features like categorization, deadlines, reminders, and automatic archiving.
 
 ## Architecture
 
@@ -32,6 +32,11 @@ tests/
 ├── ToDoList.UnitTests/       # Unit tests for business logic
 └── ToDoList.IntegrationTests/ # Integration tests for API endpoints
 ```
+Detailed information about architecture used here can be found here - [Architecture guide](https://github.com/curcicmata/ToDoList/blob/main/ARCHITECTURE.md)
+
+## API guide
+API guide can be found here - [API guide](https://github.com/curcicmata/ToDoList/blob/main/API.md)
+
 
 ## Prerequisites
 
@@ -41,56 +46,10 @@ tests/
 
 ## Getting Started
 
-### Option 1: Run Locally
+Info about starting the application can be found here - [Setup](https://github.com/curcicmata/ToDoList/blob/main/SETUP.md)
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/curcicmata/ToDoList.git
-   cd ToDoList
-   ```
-
-2. **Set up PostgreSQL**
-   - Install PostgreSQL locally
-   - Create a database named `todolist_dev`
-   - Update connection string in `src/ToDoList.API/ToDoList.API/appsettings.Development.json`
-
-3. **Apply database migrations** (once EF Core migrations are created)
-   ```bash
-   cd src/ToDoList.API/ToDoList.API
-   dotnet ef database update
-   ```
-
-4. **Run the application**
-   ```bash
-   dotnet run
-   ```
-
-5. **Access Swagger UI**
-   Navigate to: `https://localhost:5001/swagger`
-
-### Option 2: Run with Docker Compose
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/curcicmata/ToDoList.git
-   cd ToDoList
-   ```
-
-2. **Start services**
-   ```bash
-   docker-compose up -d
-   ```
-
-3. **Access the services**
-   - API: `http://localhost:5000`
-   - Swagger UI: `http://localhost:5000/swagger`
-   - PgAdmin: `http://localhost:5050` (admin@todolist.com / admin)
-
-4. **Stop services**
-   ```bash
-   docker-compose down
-   ```
-
+## Swagger 
+To open the swagger follow this link - [Swagger guide](https://github.com/curcicmata/ToDoList/blob/main/SWAGGER_GUIDE.md)
 
 ## Configuration
 
