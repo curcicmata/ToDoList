@@ -173,8 +173,15 @@ app.UseSerilogRequestLogging();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ToDoList.Infrastructure.Data.ApplicationDbContext>();
-    await context.Database.MigrateAsync();
-    Log.Information("Database migrations applied");
+    if (!app.Environment.IsEnvironment("Testing"))
+    {
+        await context.Database.MigrateAsync();
+        Log.Information("Database migrations applied");
+    }
+    else
+    {
+        await context.Database.EnsureCreatedAsync();
+    }
 
     if (app.Environment.IsDevelopment())
     {
